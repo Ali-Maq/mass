@@ -1,0 +1,36 @@
+{
+  "id": "76f46a90fc23427d",
+  "status": "awaiting_deployment",
+  "stage": "Deployment required",
+  "started_at": "2026-10-17T22:45:18.494131+00:00",
+  "actor": "Ali-Maq",
+  "model": "deepseek-ai/DeepSeek-V4-Pro",
+  "training_status": "succeeded",
+  "source": "https://github.com/SakanaAI/mass",
+  "updated_at": "2026-10-17T22:55:50.252476+00:00",
+  "pid": 2412,
+  "selected": "v0",
+  "workflow_sha256": "e577951e08c0eb324b201d56543ac4c1aed4d79dc9393ff22ac9c61da4ef0073",
+  "development": {
+    "initial": 36,
+    "candidate": 36,
+    "total": 36
+  },
+  "heldout": {
+    "passed": 36,
+    "total": 36
+  },
+  "error": null,
+  "training": {
+    "id": "ftjob-d9d6409d3a2b4c67adebb74d0398064c",
+    "status": "succeeded",
+    "model": "Qwen/Qwen3.5-9B",
+    "fine_tuned_model": "ftmodel-cee03aea-b639-4bd6-bd18-40412f3713ac",
+    "trained_tokens": 10568,
+    "error": null,
+    "updated_at": "2026-10-17T22:55:50.250677+00:00",
+    "url": "https://console.crusoecloud.com/foundry/fine-tuning/jobs/ftjob-d9d6409d3a2b4c67adebb74d0398064c/overview",
+    "deployment_status": "required",
+    "promotion": "blocked until tuned inference passes independent evaluation"
+  }
+}

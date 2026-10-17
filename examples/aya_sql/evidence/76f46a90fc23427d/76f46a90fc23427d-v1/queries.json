@@ -1,0 +1,38 @@
+{
+  "dev-top": {
+    "sql": "SELECT repo, stars FROM repositories ORDER BY stars DESC, repo ASC LIMIT 3"
+  },
+  "dev-null": {
+    "sql": "SELECT repo FROM repositories WHERE license IS NULL ORDER BY repo"
+  },
+  "dev-zero": {
+    "sql": "SELECT repo, forks FROM repositories WHERE stars = 0 ORDER BY repo"
+  },
+  "dev-owner-totals": {
+    "sql": "SELECT owner, COUNT(*) AS repo_count, SUM(stars) AS total_stars FROM repositories GROUP BY owner ORDER BY owner"
+  },
+  "dev-average": {
+    "sql": "SELECT repo, stars FROM repositories WHERE stars > (SELECT AVG(stars) FROM repositories) ORDER BY stars DESC, repo ASC"
+  },
+  "dev-quotes": {
+    "sql": "SELECT repo, description FROM repositories WHERE description LIKE '%''%' ORDER BY repo"
+  },
+  "dev-missing-owner": {
+    "sql": "SELECT COUNT(*) AS count FROM repositories WHERE owner = 'delta'"
+  },
+  "dev-tied-winners": {
+    "sql": "SELECT owner, repo, stars FROM repositories r WHERE stars = (SELECT MAX(stars) FROM repositories r2 WHERE r2.owner = r.owner) ORDER BY owner, repo"
+  },
+  "dev-license-groups": {
+    "sql": "SELECT CASE WHEN license IS NULL THEN 'unlicensed' ELSE license END AS license_label, COUNT(*) AS cnt FROM repositories GROUP BY license_label ORDER BY license_label"
+  },
+  "dev-share": {
+    "sql": "SELECT repo, CASE WHEN (SELECT SUM(stars) FROM repositories) = 0 THEN 0.0 ELSE ROUND(100.0 * stars / (SELECT SUM(stars) FROM repositories), 2) END AS pct FROM repositories ORDER BY repo"
+  },
+  "dev-11": {
+    "refused": true
+  },
+  "dev-12": {
+    "refused": true
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "format": "assistant-only supervised chat",
+  "teacher": "deepseek-ai/DeepSeek-V4-Pro",
+  "student": "Qwen/Qwen3.5-9B",
+  "kind": "distilled final SQL outputs from verified agent trajectories",
+  "mode": "supervised integration smoke test",
+  "mass_eligibility": "Not a MASS winning-teacher training round: no workflow beat the bare reference in this run",
+  "training_rows": 10,
+  "validation_rows": 2,
+  "question_ids": {
+    "training": [
+      "dev-top",
+      "dev-null",
+      "dev-zero",
+      "dev-owner-totals",
+      "dev-average",
+      "dev-quotes",
+      "dev-missing-owner",
+      "dev-tied-winners",
+      "dev-11",
+      "dev-12"
+    ],
+    "validation": [
+      "dev-license-groups",
+      "dev-share"
+    ]
+  },
+  "heldout_rows": 0,
+  "langfuse_trace": "http://127.0.0.1:3001/project/airms-project-001/traces/4166c26ca6e0cd8867bced5efa419177",
+  "trajectory_revision": "cfa0f5dabc362ed5cdec45051343f8e2a6785b3c5412449b5d17584160e1a5e4",
+  "workflow_sha256": "e577951e08c0eb324b201d56543ac4c1aed4d79dc9393ff22ac9c61da4ef0073",
+  "files": {
+    "training": "99b34878db1423a7c08d62640fc223fd244db51c7d48d4c4aff146508614c7e3",
+    "validation": "681d3fc309dbd742f9427eed785e9a7044efe5f6e296032a904eb66ee4fc2fcc"
+  },
+  "limitations": "Small integration smoke test; insufficient evidence of generalization or weight improvement"
+}

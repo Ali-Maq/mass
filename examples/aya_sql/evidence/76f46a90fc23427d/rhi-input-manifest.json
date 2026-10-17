@@ -1,0 +1,23 @@
+{
+  "sha256": {
+    "task_file": "0eec3167b5a68f4111da545a81323c547021c08dd7ca25c8f22ffbea7e92a3d5",
+    "contract": "c7eb010f1ed62422079de4b177ccb0b306a9b1ecdeedd050e54b1e6dd66debb1",
+    "dataset": "1e01197fee467a4462422d0f2def52b16573b3b3ea9e34b35561110a1ad6263a",
+    "evaluator": "a90824e3c2d459b5897c640a0bf006c0fd3edbe14916227bf1eb8457a225e725"
+  },
+  "implementation_sha256": {
+    "mass/aya_sql.py": "141963341c75cb6566a7c4d1d5b5c4c2c4ac45c30923f94a220d176e4caeeaa6",
+    "harness_improvement/iterate_multi_agent_prompt.py": "b7c3672b1b580259139465a5680a830e2c100c8dfc6eac8fa861ddbfba8f3b3a",
+    "harness_improvement/llm_backend.py": "3a83206e807ba3ab560189f12e28df127a51ff74bbf3be1d8d91a911cf97656c",
+    "evaluation/artifacts.py": "6d17e8698b11073070244bc379f76904127e9d92e2d1e6c102748fad0cc859c5",
+    "evaluation/bundle.py": "597ec397598f3871d9cf1b1d39e81151cfe8eb667260b3fe5f9df0996d01ad33",
+    "evaluation_claudecodex/pairwise_judge.py": "74e301bfd968cba022dcb3ea04d5d0fd5060f70c1564cba067b10923d9602b22",
+    "evaluation_claudecodex/pairwise_prompts.py": "377301a7d1d1fea2014de665b85d6d154b2d0149d3ed1984efdf6cf19fb49266",
+    "evaluation_claudecodex/pairwise_schema.py": "2074839d256817120a15fbcc54e27e3b109ed2710336abdb74532643a873218b"
+  },
+  "model": "deepseek-ai/DeepSeek-V4-Pro",
+  "endpoint": "https://api.inference.crusoecloud.com/v1",
+  "task": 1001,
+  "format": 1,
+  "max_output_tokens": 4000
+}

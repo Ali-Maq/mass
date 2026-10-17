@@ -1,0 +1,27 @@
+{
+  "sessions": [
+    {
+      "id": "20261017_224734_594796",
+      "source": "cli",
+      "model": "deepseek-ai/DeepSeek-V4-Pro",
+      "billing_provider": "custom",
+      "parent_session_id": null,
+      "tool_call_count": 14,
+      "input_tokens": 14933,
+      "output_tokens": 7063,
+      "api_call_count": 14,
+      "tools": [
+        "execute_code",
+        "read_file",
+        "search_files",
+        "skills_list",
+        "terminal",
+        "write_file"
+      ]
+    }
+  ],
+  "child_sessions": 0,
+  "api_calls": 14,
+  "input_tokens": 14933,
+  "output_tokens": 7063
+}

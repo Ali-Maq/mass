@@ -1,0 +1,82 @@
+{
+  "benchmark": "aya-nl-sql-v1",
+  "split": "development",
+  "seed": 20261017,
+  "dataset_seeds": [
+    20261017,
+    20365746,
+    20470776
+  ],
+  "dataset_sha256": "43b2d16dd73f2912885cdb929b97e602aaa1a2c9a3988e2e3ddb5f251e099d17",
+  "case_sha256": "7abc212defbd64d6e65838c8777743184c9192589b76185a9551a03995b758b5",
+  "executor_source_sha256": "c79ae1a51002b2132b511e4fad4be785dd5e60fb54088a9ba90e771b92a897ff",
+  "passed": 36,
+  "total": 36,
+  "task_passed": 12,
+  "task_total": 12,
+  "refusal_tasks": 2,
+  "protocol_valid": true,
+  "by_question": [
+    {
+      "id": "dev-top",
+      "passed": 3,
+      "total": 3
+    },
+    {
+      "id": "dev-null",
+      "passed": 3,
+      "total": 3
+    },
+    {
+      "id": "dev-zero",
+      "passed": 3,
+      "total": 3
+    },
+    {
+      "id": "dev-owner-totals",
+      "passed": 3,
+      "total": 3
+    },
+    {
+      "id": "dev-average",
+      "passed": 3,
+      "total": 3
+    },
+    {
+      "id": "dev-quotes",
+      "passed": 3,
+      "total": 3
+    },
+    {
+      "id": "dev-missing-owner",
+      "passed": 3,
+      "total": 3
+    },
+    {
+      "id": "dev-tied-winners",
+      "passed": 3,
+      "total": 3
+    },
+    {
+      "id": "dev-license-groups",
+      "passed": 3,
+      "total": 3
+    },
+    {
+      "id": "dev-share",
+      "passed": 3,
+      "total": 3
+    },
+    {
+      "id": "dev-11",
+      "passed": 3,
+      "total": 3
+    },
+    {
+      "id": "dev-12",
+      "passed": 3,
+      "total": 3
+    }
+  ],
+  "failures": []
+}

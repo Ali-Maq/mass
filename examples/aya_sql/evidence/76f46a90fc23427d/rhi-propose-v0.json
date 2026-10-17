@@ -1,0 +1,26 @@
+{
+  "action": "propose",
+  "version": 0,
+  "task": 1001,
+  "backend": "hosted-chat",
+  "model": "deepseek-ai/DeepSeek-V4-Pro",
+  "endpoint": "https://api.inference.crusoecloud.com/v1",
+  "completed_at": "2026-10-17T22:47:31.002527+00:00",
+  "workspace_sha256": {
+    "queries.json": "25cb26c98778f7cd5ee2e6574a20ce799e8e402e70dd7e39f71462526abaa1a4",
+    "results.json": "09c47208e7dd0163dc7d31ae06d2c25d3237373db104cd216646ccf8e25953bf",
+    "run_status.json": "6e0dc2032ead0c8d50936789d89610f670843d6094bc8184cf3ab33d53c59f8e"
+  },
+  "immutable_sha256": {
+    "task_file": "0eec3167b5a68f4111da545a81323c547021c08dd7ca25c8f22ffbea7e92a3d5",
+    "contract": "c7eb010f1ed62422079de4b177ccb0b306a9b1ecdeedd050e54b1e6dd66debb1",
+    "dataset": "1e01197fee467a4462422d0f2def52b16573b3b3ea9e34b35561110a1ad6263a",
+    "evaluator": "a90824e3c2d459b5897c640a0bf006c0fd3edbe14916227bf1eb8457a225e725"
+  },
+  "rhi_dir": "<run_root>/rhi",
+  "weight_update": false,
+  "acceptance_authority": "independent controller evaluator",
+  "workflow_path": "<run_root>/rhi/updated_queries/query1001_ourTeam-v1.txt",
+  "workflow_sha256": "350b34b10851e033f03b3f6bc687d508e47a483316478e4e0242b719edd3a022",
+  "next_version": 1
+}
