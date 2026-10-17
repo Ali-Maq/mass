@@ -13,6 +13,7 @@ import re
 import time
 from dataclasses import dataclass
 from typing import Any
+from urllib.parse import urlparse
 
 from openai import OpenAI
 
@@ -22,7 +23,9 @@ from evaluation.responses_metrics import ResponsesCallMetrics
 
 BACKEND_OPENAI_RESPONSES = "openai-responses"
 BACKEND_LOCAL_VLLM = "local-vllm"
-BACKEND_CHOICES = (BACKEND_OPENAI_RESPONSES, BACKEND_LOCAL_VLLM)
+BACKEND_HOSTED_CHAT = "hosted-chat"
+CHAT_BACKENDS = (BACKEND_LOCAL_VLLM, BACKEND_HOSTED_CHAT)
+BACKEND_CHOICES = (BACKEND_OPENAI_RESPONSES, *CHAT_BACKENDS)
 
 
 def _await_background_response(
@@ -127,7 +130,7 @@ def _responses_text(response: Any) -> str:
     return ""
 
 
-def _chat_usage_metrics(response: Any, *, model: str) -> dict[str, Any]:
+def _chat_usage_metrics(response: Any, *, model: str, hosted: bool = False) -> dict[str, Any]:
     usage_obj = getattr(response, "usage", None)
     usage_raw: dict[str, Any] = {}
     if usage_obj is not None and hasattr(usage_obj, "model_dump"):
@@ -152,15 +155,18 @@ def _chat_usage_metrics(response: Any, *, model: str) -> dict[str, Any]:
         usage["output_tokens_details"] = completion_details
     return {
         "usage": usage,
-        "estimated_cost_usd": 0.0,
-        "cost_estimate_note": "Locally hosted vLLM inference; API cost recorded as $0.",
+        "estimated_cost_usd": None if hosted else 0.0,
+        "cost_estimate_note": (
+            "Hosted inference; token usage is recorded, but API cost was not estimated."
+            if hosted else "Locally hosted vLLM inference; API cost recorded as $0."
+        ),
         "response_id": str(getattr(response, "id", "") or "") or None,
-        "served_model": model,
+        "served_model": str(getattr(response, "model", None) or model),
     }
 
 
 class JsonLLMBackend:
-    """Call either OpenAI Responses or a local vLLM chat endpoint for JSON."""
+    """Call Responses, local vLLM, or an authenticated hosted chat endpoint."""
 
     def __init__(
         self,
@@ -181,8 +187,17 @@ class JsonLLMBackend:
     ) -> None:
         if backend not in BACKEND_CHOICES:
             raise ValueError(f"Unsupported backend: {backend}")
-        if backend == BACKEND_LOCAL_VLLM and not base_url:
-            raise ValueError("local-vllm requires base_url")
+        if backend in CHAT_BACKENDS and not base_url:
+            raise ValueError(f"{backend} requires base_url")
+        if backend == BACKEND_HOSTED_CHAT:
+            parsed = urlparse(base_url or "")
+            if (
+                parsed.scheme != "https" or not parsed.hostname
+                or parsed.username or parsed.password or parsed.query or parsed.fragment
+            ):
+                raise ValueError("hosted-chat requires an HTTPS base URL without credentials, query, or fragment")
+            if not api_key or api_key == "EMPTY":
+                raise ValueError("hosted-chat requires a provider API key")
         self.backend = backend
         self.model = model
         self.reasoning_effort = reasoning_effort
@@ -202,14 +217,14 @@ class JsonLLMBackend:
         )
 
     def verify_model(self) -> None:
-        """Fail early when the selected model is not served by local vLLM."""
-        if self.backend != BACKEND_LOCAL_VLLM:
+        """Fail early when the selected chat endpoint does not list the model."""
+        if self.backend not in CHAT_BACKENDS:
             return
         models = self.client.models.list()
         ids = {str(item.id) for item in models.data}
         if self.model not in ids:
             raise RuntimeError(
-                f"Local endpoint is reachable but does not serve {self.model!r}; "
+                f"Chat endpoint is reachable but does not serve {self.model!r}; "
                 f"available models: {sorted(ids)}"
             )
 
@@ -250,7 +265,7 @@ class JsonLLMBackend:
             json_mode=True,
         )
         if not response.choices:
-            raise RuntimeError("Local vLLM returned no completion choices.")
+            raise RuntimeError("Chat endpoint returned no completion choices.")
         message = response.choices[0].message
         raw_content = message.content
         raw = raw_content.strip() if isinstance(raw_content, str) else ""
@@ -259,14 +274,14 @@ class JsonLLMBackend:
             reasoning_chars = len(reasoning) if isinstance(reasoning, str) else 0
             finish_reason = response.choices[0].finish_reason
             raise RuntimeError(
-                "Local vLLM returned no final JSON content "
+                "Chat endpoint returned no final JSON content "
                 f"(finish_reason={finish_reason!r}, reasoning_chars={reasoning_chars}). "
                 "This usually means the output ceiling was consumed by reasoning."
             )
         return JsonCallResult(
             payload=_extract_json_object(raw),
             raw_text=raw,
-            metrics=_chat_usage_metrics(response, model=self.model),
+            metrics=_chat_usage_metrics(response, model=self.model, hosted=self.backend == BACKEND_HOSTED_CHAT),
         )
 
     def call_text(self, *, system_prompt: str, user_prompt: str) -> JsonCallResult:
@@ -304,7 +319,7 @@ class JsonLLMBackend:
             json_mode=False,
         )
         if not response.choices:
-            raise RuntimeError("Local vLLM returned no completion choices.")
+            raise RuntimeError("Chat endpoint returned no completion choices.")
         message = response.choices[0].message
         raw_content = message.content
         raw = raw_content.strip() if isinstance(raw_content, str) else ""
@@ -313,13 +328,13 @@ class JsonLLMBackend:
             reasoning_chars = len(reasoning) if isinstance(reasoning, str) else 0
             finish_reason = response.choices[0].finish_reason
             raise RuntimeError(
-                "Local vLLM returned no final design text "
+                "Chat endpoint returned no final design text "
                 f"(finish_reason={finish_reason!r}, reasoning_chars={reasoning_chars})."
             )
         return JsonCallResult(
             payload={},
             raw_text=raw,
-            metrics=_chat_usage_metrics(response, model=self.model),
+            metrics=_chat_usage_metrics(response, model=self.model, hosted=self.backend == BACKEND_HOSTED_CHAT),
         )
 
     def _local_chat(
@@ -335,11 +350,12 @@ class JsonLLMBackend:
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
             ],
-            "extra_body": {
+        }
+        if self.backend == BACKEND_LOCAL_VLLM:
+            kwargs["extra_body"] = {
                 "chat_template_kwargs": {"enable_thinking": self.enable_thinking},
                 **({"top_k": self.top_k} if self.top_k is not None else {}),
-            },
-        }
+            }
         if json_mode:
             kwargs["response_format"] = {"type": "json_object"}
         if self.temperature is not None:
