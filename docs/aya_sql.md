@@ -134,3 +134,8 @@ workflow must not embed development questions for later held-out use.
 
 Historical receipts remain under their original implementation hash. Use a fresh
 run directory after changing the adapter; frozen runs reject implementation drift.
+
+The original repository fixture predates explicit `split` fields. Its exact schema,
+eight record columns, twelve development IDs, and three-key public envelope remain
+accepted. A missing split on any other input is rejected, as are held-out IDs or
+added oracle fields. New public benchmarks must always declare their split.

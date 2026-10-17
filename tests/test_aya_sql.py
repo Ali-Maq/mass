@@ -9,6 +9,8 @@ from mass.aya_sql import (
     BOUNDARY,
     END,
     OPTIMIZER_BUDGET,
+    LEGACY_IDS,
+    LEGACY_SCHEMA,
     START,
     freeze_json,
     prepare_task,
@@ -97,6 +99,37 @@ class AyaSqlTests(unittest.TestCase):
             (source / "public-tasks.json").write_text(json.dumps(public))
             with self.assertRaisesRegex(ValueError, "oracle fields"):
                 snapshot_workspace(source, target)
+
+    def test_legacy_fixture_requires_exact_development_envelope(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "source"
+            source.mkdir()
+            for name, value in {
+                "queries.json": {},
+                "results.json": {"split": "development"},
+                "run_status.json": {"status": "completed"},
+            }.items():
+                (source / name).write_text(json.dumps(value))
+            public = {
+                "schema": LEGACY_SCHEMA,
+                "records": [],
+                "questions": [
+                    {"id": key, "question": "Public input"}
+                    for key in sorted(LEGACY_IDS)
+                ],
+            }
+            path = source / "public-tasks.json"
+            path.write_text(json.dumps(public))
+            snapshot_workspace(source, Path(directory) / "allowed")
+            public["questions"][0]["id"] = "held-second-rank"
+            path.write_text(json.dumps(public))
+            with self.assertRaisesRegex(ValueError, "development split"):
+                snapshot_workspace(source, Path(directory) / "rejected")
+            public["questions"][0]["id"] = sorted(LEGACY_IDS)[0]
+            public["expected_sql"] = "SELECT 1"
+            path.write_text(json.dumps(public))
+            with self.assertRaisesRegex(ValueError, "development split"):
+                snapshot_workspace(source, Path(directory) / "rejected")
 
 
 if __name__ == "__main__":
