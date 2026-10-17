@@ -1,0 +1,6 @@
+{
+  "benchmark_sha256": "a90824e3c2d459b5897c640a0bf006c0fd3edbe14916227bf1eb8457a225e725",
+  "executor_sha256": "c79ae1a51002b2132b511e4fad4be785dd5e60fb54088a9ba90e771b92a897ff",
+  "teacher": "deepseek-ai/DeepSeek-V4-Pro",
+  "started_at": "2026-10-17T22:45:18.545170+00:00"
+}

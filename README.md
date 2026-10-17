@@ -119,6 +119,11 @@ they are unavailable.
 
 ### 2. Run your first search
 
+For the AYA SQL experiment using hosted Crusoe inference and externally executed
+Hermes/OpenShell episodes, see [the SQL adapter](docs/aya_sql.md). It runs actual
+RHI workflow search; its receipts distinguish workflow changes from model-weight
+updates.
+
 For an actual experiment, follow the [setup guide](docs/running.md). It covers
 Python environments, model downloads, vLLM serving, and GPU allocation. Once
 the model server is running, you can start with a single task:

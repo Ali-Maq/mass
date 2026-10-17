@@ -1,0 +1,27 @@
+{
+  "key": "v1_vs_no_harness",
+  "comparison": "no-harness-single-agent-baseline vs multi-agent-design-v1",
+  "version_b": 1,
+  "baseline": "no_harness",
+  "repo_a": "<run_root>/rhi-views/reference/query1001",
+  "repo_b": "<run_root>/rhi-views/v1/query1001_ourTeam",
+  "winner": "tie",
+  "rationale": "Both submissions produce identical SQL for 10 of 12 questions and identical refusals for dev-11 and dev-12, with only cosmetic differences in the remaining two queries. A's dev-owner-totals uses alias 'repository_count' while B uses 'repo_count'; A's dev-missing-owner omits an alias while B uses 'count'; A's dev-tied-winners uses a JOIN while B uses a correlated subquery; A's dev-license-groups uses alias 'repository_count' while B uses 'cnt'; A's dev-share lacks a zero-sum guard while B adds a CASE for division by zero. Both workspaces report identical metrics (36/36 passed, 12/12 tasks, 2 refusals, protocol_valid true) and identical deliverables structure (queries.json, results/metrics.json, run_status.json). Neither submission includes requirements.txt or plot paths. The differences are semantically equivalent SQL variants with no evidence of superior rigor, reproducibility, presentation, or engineering in either workspace.",
+  "judged_at_utc": "2026-10-17T22:49:55.464405+00:00",
+  "llm_backend": "hosted-chat",
+  "model": "deepseek-ai/DeepSeek-V4-Pro",
+  "base_url": "https://api.inference.crusoecloud.com/v1",
+  "reasoning_effort": "xhigh",
+  "temperature": 0.2,
+  "call_metrics": {
+    "usage": {
+      "input_tokens": 4547,
+      "output_tokens": 227,
+      "total_tokens": 4774
+    },
+    "estimated_cost_usd": null,
+    "cost_estimate_note": "Hosted inference; token usage is recorded, but API cost was not estimated.",
+    "response_id": "d8f2cb37f4ab4d14967ae3c943826ffd",
+    "served_model": "deepseek-ai/DeepSeek-V4-Pro"
+  }
+}

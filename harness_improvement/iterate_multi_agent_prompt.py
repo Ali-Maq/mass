@@ -28,6 +28,8 @@ from evaluation_claudecodex.pairwise_schema import PairwiseJudgeResult
 from harness_improvement.llm_backend import (
     BACKEND_CHOICES,
     BACKEND_LOCAL_VLLM,
+    BACKEND_HOSTED_CHAT,
+    CHAT_BACKENDS,
     BACKEND_OPENAI_RESPONSES,
     JsonLLMBackend,
 )
@@ -284,7 +286,7 @@ def _adjacent_history_provenance_errors(
         if not isinstance(raw, str) or Path(raw).expanduser().resolve() != expected:
             errors.append(f"{field}={raw!r}, expected {str(expected)!r}")
 
-    if llm_backend == BACKEND_LOCAL_VLLM:
+    if llm_backend in CHAT_BACKENDS:
         actual_url = str(row.get("base_url") or "").rstrip("/")
         expected_url = str(base_url or "").rstrip("/")
         if actual_url != expected_url:
@@ -1163,13 +1165,13 @@ def main() -> int:
         "--model",
         type=str,
         default=None,
-        help="Model ID. Defaults to gpt-5.5 externally or Qwen/Qwen3.5-9B locally.",
+        help="Explicit model required for hosted-chat. Defaults to gpt-5.5 for Responses or Qwen/Qwen3.5-9B locally.",
     )
     parser.add_argument(
         "--base-url",
         type=str,
         default="http://127.0.0.1:8000/v1",
-        help="OpenAI-compatible base URL for --llm-backend local-vllm.",
+        help="OpenAI-compatible base URL for local-vllm or hosted-chat.",
     )
     parser.add_argument(
         "--api-key-env",
@@ -1177,7 +1179,8 @@ def main() -> int:
         default=None,
         help=(
             "Environment variable containing the API key. Defaults to OPENAI_API_KEY "
-            "externally; local vLLM uses VLLM_API_KEY when set, otherwise EMPTY."
+            "for Responses, CRUSOE_API_KEY for hosted-chat; local vLLM uses "
+            "VLLM_API_KEY when set, otherwise EMPTY."
         ),
     )
     parser.add_argument("--reasoning-effort", type=str, default="xhigh", help="Reasoning effort for OpenAI Responses API")
@@ -1225,7 +1228,7 @@ def main() -> int:
         "--judge-base-url",
         type=str,
         default=None,
-        help="Base URL for --judge-llm-backend local-vllm (required in that case).",
+        help="Base URL required for a local-vllm or hosted-chat judge.",
     )
     parser.add_argument(
         "--include-best-design",
@@ -1514,6 +1517,11 @@ def main() -> int:
                 "--champion-repo-v0-root"
             )
 
+    if args.llm_backend == BACKEND_HOSTED_CHAT and not args.model:
+        raise SystemExit("hosted-chat requires an explicit --model")
+    if args.judge_llm_backend == BACKEND_HOSTED_CHAT and not args.judge_model:
+        raise SystemExit("hosted-chat judge requires an explicit --judge-model")
+
     model = args.model or (
         "Qwen/Qwen3.5-9B"
         if args.llm_backend == BACKEND_LOCAL_VLLM
@@ -1587,7 +1595,7 @@ def main() -> int:
     api_key_env = args.api_key_env or (
         "VLLM_API_KEY"
         if args.llm_backend == BACKEND_LOCAL_VLLM
-        else "OPENAI_API_KEY"
+        else "CRUSOE_API_KEY" if args.llm_backend == BACKEND_HOSTED_CHAT else "OPENAI_API_KEY"
     )
     api_key = os.getenv(api_key_env)
     if args.llm_backend == BACKEND_LOCAL_VLLM:
@@ -1602,7 +1610,7 @@ def main() -> int:
             backend=args.llm_backend,
             model=model,
             api_key=api_key,
-            base_url=args.base_url if args.llm_backend == BACKEND_LOCAL_VLLM else None,
+            base_url=args.base_url if args.llm_backend in CHAT_BACKENDS else None,
             reasoning_effort=args.reasoning_effort,
             temperature=temperature_kw,
             top_p=args.top_p,
@@ -1625,7 +1633,7 @@ def main() -> int:
     judge_model = model
     judge_reasoning_effort = args.reasoning_effort
     judge_temperature = temperature_kw
-    judge_base_url = args.base_url if args.llm_backend == BACKEND_LOCAL_VLLM else None
+    judge_base_url = args.base_url if args.llm_backend in CHAT_BACKENDS else None
     if args.judge_llm_backend:
         judge_backend_name = args.judge_llm_backend
         judge_model = args.judge_model or (
@@ -1637,15 +1645,15 @@ def main() -> int:
         judge_temperature = None
         judge_base_url = (
             args.judge_base_url
-            if args.judge_llm_backend == BACKEND_LOCAL_VLLM
+            if args.judge_llm_backend in CHAT_BACKENDS
             else None
         )
-        if args.judge_llm_backend == BACKEND_LOCAL_VLLM and not args.judge_base_url:
-            raise SystemExit("--judge-llm-backend local-vllm requires --judge-base-url")
+        if args.judge_llm_backend in CHAT_BACKENDS and not args.judge_base_url:
+            raise SystemExit("Chat judge backend requires --judge-base-url")
         judge_api_key_env = (
             "VLLM_API_KEY"
             if args.judge_llm_backend == BACKEND_LOCAL_VLLM
-            else "OPENAI_API_KEY"
+            else "CRUSOE_API_KEY" if args.judge_llm_backend == BACKEND_HOSTED_CHAT else "OPENAI_API_KEY"
         )
         judge_api_key = os.getenv(judge_api_key_env)
         if args.judge_llm_backend == BACKEND_LOCAL_VLLM:
@@ -2468,7 +2476,7 @@ def main() -> int:
         "llm_backend": args.llm_backend,
         "model": model,
         "base_url": (
-            args.base_url if args.llm_backend == BACKEND_LOCAL_VLLM else None
+            args.base_url if args.llm_backend in CHAT_BACKENDS else None
         ),
         "reasoning_effort": args.reasoning_effort,
         "temperature": temperature_kw,
@@ -2511,7 +2519,7 @@ def main() -> int:
         "llm_backend": args.llm_backend,
         "model": model,
         "base_url": (
-            args.base_url if args.llm_backend == BACKEND_LOCAL_VLLM else None
+            args.base_url if args.llm_backend in CHAT_BACKENDS else None
         ),
         "estimated_cost_usd_this_run": (round(sum(run_cost_estimates), 8) if run_cost_estimates else None),
         "api_calls_count_this_run": run_api_calls_total,

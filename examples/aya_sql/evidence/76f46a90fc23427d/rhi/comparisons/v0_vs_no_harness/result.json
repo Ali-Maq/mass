@@ -1,0 +1,27 @@
+{
+  "key": "v0_vs_no_harness",
+  "comparison": "no-harness-single-agent-baseline vs multi-agent-design-v0",
+  "version_b": 0,
+  "baseline": "no_harness",
+  "repo_a": "<run_root>/rhi-views/reference/query1001",
+  "repo_b": "<run_root>/rhi-views/v0/query1001_ourTeam",
+  "winner": "tie",
+  "rationale": "Both submissions produce identical SQL for 10 of 12 questions and identical refusal decisions for dev-11 and dev-12, with only cosmetic differences in aliases and defensive SQL constructs. For example, dev-owner-totals uses 'repository_count' in A vs 'repo_count' in B, dev-missing-owner uses 'COUNT(*)' in A vs 'COUNT(*) AS count' in B, dev-tied-winners uses a JOIN in A vs a correlated subquery in B, and dev-share uses ROUND(100.0 * stars / (SELECT SUM(stars)...)) in A vs COALESCE(ROUND(stars * 100.0 / NULLIF(...), 2), 0.0) in B. Both workspaces contain the same deliverables (queries.json, results/metrics.json, run_status.json), identical metrics (36/36 passed, 12/12 tasks passed, 2 refusals), and identical research_report.md structure. Neither submission includes requirements.txt or plot artifacts, and both reports contain the same evaluation metadata and by_question results. The differences are purely stylistic and do not affect correctness, generalization, or task alignment.",
+  "judged_at_utc": "2026-10-17T22:49:46.046682+00:00",
+  "llm_backend": "hosted-chat",
+  "model": "deepseek-ai/DeepSeek-V4-Pro",
+  "base_url": "https://api.inference.crusoecloud.com/v1",
+  "reasoning_effort": "xhigh",
+  "temperature": 0.2,
+  "call_metrics": {
+    "usage": {
+      "input_tokens": 4537,
+      "output_tokens": 260,
+      "total_tokens": 4797
+    },
+    "estimated_cost_usd": null,
+    "cost_estimate_note": "Hosted inference; token usage is recorded, but API cost was not estimated.",
+    "response_id": "e4cc7180d3584ca999553fb146a3662e",
+    "served_model": "deepseek-ai/DeepSeek-V4-Pro"
+  }
+}

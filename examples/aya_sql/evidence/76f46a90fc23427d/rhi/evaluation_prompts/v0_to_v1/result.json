@@ -1,0 +1,86 @@
+{
+  "improvement": "multi-agent-design-v0 -> multi-agent-design-v1",
+  "current_repo": "<run_root>/rhi-views/v0/query1001_ourTeam",
+  "query_file_source": "<run_root>/rhi-task/query1001_ourTeam.txt",
+  "rendered_query_file": "<run_root>/rhi/updated_queries/query1001_ourTeam-v1.txt",
+  "design_file": "<run_root>/rhi/versions/multi_agent_design_v1.txt",
+  "created_at_utc": "2026-10-17T22:47:30.741951+00:00",
+  "llm_backend": "hosted-chat",
+  "model": "deepseek-ai/DeepSeek-V4-Pro",
+  "base_url": "https://api.inference.crusoecloud.com/v1",
+  "reasoning_effort": "xhigh",
+  "temperature": 0.2,
+  "top_p": null,
+  "top_k": null,
+  "max_output_tokens": 4000,
+  "local_thinking": null,
+  "seed": null,
+  "submission_label": "the bounded Hermes SQL workflow",
+  "improvement_output_mode": "json",
+  "current_run_status_file": "<run_root>/rhi-views/v0/query1001_ourTeam/run_status.json",
+  "estimated_input_tokens_chars_div_4": 3142,
+  "call_metrics": {
+    "usage": {
+      "input_tokens": 3592,
+      "output_tokens": 1510,
+      "total_tokens": 5102
+    },
+    "estimated_cost_usd": null,
+    "cost_estimate_note": "Hosted inference; token usage is recorded, but API cost was not estimated.",
+    "response_id": "37998c5e287748c4b0a56a3d08434f76",
+    "served_model": "deepseek-ai/DeepSeek-V4-Pro"
+  },
+  "response_json": {
+    "improved_multi_agent_design": "Create an agent team with following agent candidates to solve this problem:\n\nShared contract: every subagent returns JSON with exactly {question_id, verdict, sql, refusal, issues[], evidence[]}. verdict is one of pass|needs_revision|refuse. sql is non-empty only when verdict=pass. refusal is true only when verdict=refuse. issues[] lists concrete, question-specific defects with suggested fixes. evidence[] cites schema columns, question clauses, or executed result snippets. The orchestrator is the only writer of queries.json and must not accept a subagent verdict without checking its evidence.\n\n1. Orchestrator (coordinator). Reads schema and questions, classifies each request as allowed SELECT or prohibited write/external-file/extension/database access. For allowed questions, it drafts SQL and dispatches parallel specialist reviews. It owns the final queries.json and must preserve requested column order, row ordering, ties, grouping, NULL behavior, and generalization. It may recall any specialist with a narrower scope and updated acceptance criteria. It resolves conflicts by requiring evidence, not authority.\n\n2. SQL Semantics Reviewer. For each allowed question, independently checks the draft SQL against the question's requested columns, filters, grouping, NULL handling, ordering, and tie-breaking. Output to orchestrator: {question_id, verdict, sql, refusal, issues[], evidence[]}. If verdict=needs_revision, issues[] must name the exact clause or expression to change and evidence[] must quote the relevant question phrase or schema column.\n\n3. Refusal Boundary Auditor. For every question, independently decides whether it is a prohibited write, external file, extra database, or extension request. Output to orchestrator: {question_id, verdict, sql, refusal, issues[], evidence[]}. If verdict=refuse, refusal=true and evidence[] must cite the prohibited phrase. If verdict=pass, refusal=false and evidence[] must show why the request is a read-only SELECT over the supplied repositories schema.\n\n4. Execution Probe Agent. Runs candidate SQL against the supplied SQLite database with uv run and reports row counts, column names, NULL counts, and tie behavior. Output to orchestrator: {question_id, verdict, sql, refusal, issues[], evidence[]}. evidence[] must include observed column order and row order for the candidate query. It never edits queries.json.\n\nOrchestrator loop: (a) draft all allowed SQL and refusals; (b) dispatch Semantics Reviewer and Refusal Boundary Auditor in parallel for every question; (c) for any needs_revision or conflict, recall the relevant specialist with the specific issue and a one-question follow-up scope; (d) run Execution Probe on revised candidates; (e) repeat recall until all verdicts are pass or refuse with evidence; (f) write queries.json only after all questions are resolved. The orchestrator may not delegate final output authority.",
+    "changes_from_previous": [
+      "Added a shared JSON contract for every subagent with verdict, sql, refusal, issues[], and evidence[] fields.",
+      "Split the single reviewer into three parallel specialists: SQL Semantics Reviewer, Refusal Boundary Auditor, and Execution Probe Agent.",
+      "Added an explicit orchestrator recall loop with narrower follow-up scopes and updated acceptance criteria.",
+      "Required evidence[] citations for every subagent verdict, preventing acceptance of unsupported claims.",
+      "Made the orchestrator the sole writer of queries.json and prohibited delegation of final output authority.",
+      "Added Execution Probe Agent to verify column order, row order, NULL counts, and tie behavior against the actual database.",
+      "Required parallel dispatch of Semantics Reviewer and Refusal Boundary Auditor for every question.",
+      "Added conflict resolution rule: orchestrator resolves conflicts by requiring evidence, not authority."
+    ],
+    "why_it_should_improve": [
+      "Parallel specialist reviews create redundancy that catches errors a single agent misses, especially for NULL handling and tie-breaking.",
+      "Structured output contracts make downstream consumption deterministic, reducing malformed feedback and silent failures.",
+      "Recall loops allow iterative refinement of ambiguous queries instead of one-pass unidirectional execution.",
+      "Evidence requirements force reviewers to ground feedback in schema/question phrases, reducing hallucinated fixes.",
+      "Execution Probe validates actual result shapes, catching column-order and row-order mismatches that static review misses.",
+      "Refusal Boundary Auditor independently checks prohibited requests, reducing false refusals and missed refusals.",
+      "Sole orchestrator ownership of queries.json prevents conflicting writes and preserves final output consistency.",
+      "Conflict resolution by evidence rather than authority improves decision quality and reproducibility."
+    ],
+    "evidence_used": [
+      "research_report.md shows all 36/36 passed but no evidence of multi-agent validation; current design has only one optional reviewer.",
+      "results/metrics.json shows 12/12 task_passed and 2 refusal_tasks, indicating refusal handling is critical and should be independently audited.",
+      "queries.json in research_report.md includes complex cases like dev-tied-winners and dev-share that require tie-breaking and NULL handling, which benefit from execution probing.",
+      "Current design states 'It may ask one child reviewer to inspect ambiguous queries, then resolves that feedback itself'\u2014no structured output contract or recall loop.",
+      "No prior pairwise history, so improvements target structural weaknesses in the v0 design rather than recurring failures.",
+      "Task contract requires preserving column order, row ordering, ties, NULL behavior, and generalization\u2014Execution Probe directly verifies these.",
+      "Task contract requires refusing writes, external files, extra databases, and extensions\u2014Refusal Boundary Auditor directly verifies these.",
+      "deliverables/index.json lists queries.json, results/metrics.json, and run_status.json as artifacts, confirming final output ownership matters."
+    ],
+    "expected_impact": [
+      "Higher precision on edge cases like NULL grouping and tied winners due to execution-level verification.",
+      "Fewer false refusals and missed refusals due to independent boundary auditing.",
+      "More reliable column order and row ordering due to Execution Probe evidence.",
+      "Reduced malformed feedback and silent failures due to structured output contracts.",
+      "Faster convergence on ambiguous queries due to recall loops with narrower scopes.",
+      "Improved reproducibility because every verdict is backed by evidence citations.",
+      "Lower risk of conflicting writes because only the orchestrator writes queries.json.",
+      "Better generalization to unseen records because reviewers check query logic, not snapshot answers."
+    ],
+    "verification_checks": [
+      "Check next iteration's research_report.md for evidence of parallel specialist dispatch and recall loops.",
+      "Verify queries.json still passes all 36/36 and 12/12 task metrics in results/metrics.json.",
+      "Confirm refusal_tasks remains 2 and no allowed question is incorrectly refused.",
+      "Check logs.txt for structured subagent outputs with verdict, issues[], and evidence[] fields.",
+      "Verify Execution Probe evidence includes observed column order and row order for complex queries.",
+      "Confirm orchestrator is the only writer of queries.json and no subagent edits it.",
+      "Check that any needs_revision verdicts are followed by a recall with narrower scope.",
+      "Ensure no subagent output contains literal snapshot answers or self-reported scores."
+    ]
+  }
+}

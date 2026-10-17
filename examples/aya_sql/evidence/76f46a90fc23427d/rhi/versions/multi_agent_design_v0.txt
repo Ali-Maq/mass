@@ -1,0 +1,2 @@
+Create an agent team with following agent candidates to solve this problem:
+The coordinator reads the supplied schema and natural-language questions, then writes a SQL answer for every allowed read request and an explicit refusal for prohibited requests. It checks column order, grouping, NULL behavior, ordering and ties against the question before writing queries.json. It may ask one child reviewer to inspect ambiguous queries, then resolves that feedback itself. The reviewer cannot delegate. The coordinator owns the final output.

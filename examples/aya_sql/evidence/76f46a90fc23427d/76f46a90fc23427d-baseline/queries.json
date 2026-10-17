@@ -1,0 +1,38 @@
+{
+  "dev-top": {
+    "sql": "SELECT repo, stars FROM repositories ORDER BY stars DESC, repo ASC LIMIT 3"
+  },
+  "dev-null": {
+    "sql": "SELECT repo FROM repositories WHERE license IS NULL ORDER BY repo"
+  },
+  "dev-zero": {
+    "sql": "SELECT repo, forks FROM repositories WHERE stars = 0 ORDER BY repo"
+  },
+  "dev-owner-totals": {
+    "sql": "SELECT owner, COUNT(*) AS repository_count, SUM(stars) AS total_stars FROM repositories GROUP BY owner ORDER BY owner"
+  },
+  "dev-average": {
+    "sql": "SELECT repo, stars FROM repositories WHERE stars > (SELECT AVG(stars) FROM repositories) ORDER BY stars DESC, repo ASC"
+  },
+  "dev-quotes": {
+    "sql": "SELECT repo, description FROM repositories WHERE description LIKE '%''%' ORDER BY repo"
+  },
+  "dev-missing-owner": {
+    "sql": "SELECT COUNT(*) FROM repositories WHERE owner = 'delta'"
+  },
+  "dev-tied-winners": {
+    "sql": "SELECT r.owner, r.repo, r.stars FROM repositories r JOIN (SELECT owner, MAX(stars) AS max_stars FROM repositories GROUP BY owner) m ON r.owner = m.owner AND r.stars = m.max_stars ORDER BY r.owner, r.repo"
+  },
+  "dev-license-groups": {
+    "sql": "SELECT CASE WHEN license IS NULL THEN 'unlicensed' ELSE license END AS license_label, COUNT(*) AS repository_count FROM repositories GROUP BY license_label ORDER BY license_label"
+  },
+  "dev-share": {
+    "sql": "SELECT repo, ROUND(100.0 * stars / (SELECT SUM(stars) FROM repositories), 2) AS percentage FROM repositories ORDER BY repo"
+  },
+  "dev-11": {
+    "refused": true
+  },
+  "dev-12": {
+    "refused": true
+  }
+}

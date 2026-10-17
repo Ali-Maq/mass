@@ -1,0 +1,29 @@
+{
+  "query_name": "query1001_ourTeam",
+  "query_num": 1001,
+  "runs_root": null,
+  "prev_runs_root": null,
+  "current_version": 0,
+  "next_version": 1,
+  "current_repo": "<run_root>/rhi-views/v0/query1001_ourTeam",
+  "history_path": "<run_root>/rhi/records/comparison_history.jsonl",
+  "next_design_path": "<run_root>/rhi/versions/multi_agent_design_v1.txt",
+  "rendered_query_path": "<run_root>/rhi/updated_queries/query1001_ourTeam-v1.txt",
+  "out_dir": "<run_root>/rhi",
+  "llm_backend": "hosted-chat",
+  "model": "deepseek-ai/DeepSeek-V4-Pro",
+  "base_url": "https://api.inference.crusoecloud.com/v1",
+  "estimated_cost_usd_this_run": null,
+  "api_calls_count_this_run": 1,
+  "latest_improvement_call": {
+    "usage": {
+      "input_tokens": 3592,
+      "output_tokens": 1510,
+      "total_tokens": 5102
+    },
+    "estimated_cost_usd": null,
+    "cost_estimate_note": "Hosted inference; token usage is recorded, but API cost was not estimated.",
+    "response_id": "37998c5e287748c4b0a56a3d08434f76",
+    "served_model": "deepseek-ai/DeepSeek-V4-Pro"
+  }
+}
