@@ -33,6 +33,7 @@ IMPLEMENTATION_FILES = (
 )
 INITIAL_DESIGN = """The coordinator reads the supplied schema and natural-language questions, then writes a SQL answer for every allowed read request and an explicit refusal for prohibited requests. It checks column order, grouping, NULL behavior, ordering and ties against the question before writing queries.json. It may ask one child reviewer to inspect ambiguous queries, then resolves that feedback itself. The reviewer cannot delegate. The coordinator owns the final output."""
 BOUNDARY = """The contract.json and dataset.json supplied by the controller are immutable. The accepted query.py executor and the controller evaluator are fixed; do not rewrite either. Produce queries.json using the exact contract, with no extra IDs. Read only the public questions and fixture supplied for this episode; do not seek hidden tests or evaluator source. At most one child may be created, at concurrency one and depth one; that child must not delegate. The controller enforces the native runtime time and turn limits. Do not fetch external data or install dependencies. Record concise decisions and observable tool outputs, not private reasoning. Controller-owned results.json is the measured development evidence; self-reported results cannot replace it. A revised workflow is only a candidate until the independent controller evaluates it."""
+OPTIMIZER_BUDGET = """Immutable workflow budget: at most one child in total, one concurrent child, maximum spawn depth one, child timeout 90 seconds, and at most 40 coordinator turns. The child cannot delegate. Optimize within this budget; do not propose parallel reviewer teams. The episode's public-tasks.json supplies its schema and questions separately. Never carry development questions into a held-out episode."""
 
 
 def digest(path: Path) -> str:
@@ -71,6 +72,9 @@ def prepare_task(source: Path, target: Path) -> None:
     # Always append our runtime ceiling, even when a caller supplies a template.
     if BOUNDARY not in raw:
         raw = f"{raw.rstrip()}\n\n{BOUNDARY}\n"
+    if OPTIMIZER_BUDGET not in raw:
+        prefix, design = raw.split(START, 1)
+        raw = f"{prefix.rstrip()}\n\n{OPTIMIZER_BUDGET}\n\n{START}{design}"
     freeze_bytes(target, raw.encode())
 
 
@@ -90,6 +94,20 @@ def snapshot_workspace(source: Path, target: Path) -> dict:
             "RHI accepts only controller-scored development results with split=development"
         )
     hashes = {}
+    public_input = source / "public-tasks.json"
+    if public_input.exists():
+        public = read_json(public_input)
+        if public.get("split") not in ("development", "dev"):
+            raise ValueError("Public RHI input must be the development split")
+        questions = public.get("questions")
+        if not isinstance(questions, list) or any(
+            not isinstance(item, dict)
+            or not set(item) <= {"id", "db_id", "question"}
+            or not {"id", "question"} <= set(item)
+            for item in questions
+        ):
+            raise ValueError("Public RHI questions may not contain oracle fields")
+        required["public-tasks.json"] = "public-tasks.json"
     for original, normalized in required.items():
         data = (source / original).read_bytes()
         json.loads(data)
@@ -100,7 +118,7 @@ def snapshot_workspace(source: Path, target: Path) -> dict:
     freeze_json(
         target / "deliverables/index.json",
         {
-            "artifacts": ["queries.json", "results/metrics.json", "run_status.json"],
+            "artifacts": list(required.values()),
             "evaluation": "Independent SQLite result equivalence; development split only",
         },
     )
@@ -111,6 +129,12 @@ def snapshot_workspace(source: Path, target: Path) -> dict:
         + (source / "queries.json").read_text()
         + "\n```\n"
     )
+    if public_input.exists():
+        report += (
+            "\nPublic development schemas and questions:\n\n```json\n"
+            + public_input.read_text()
+            + "\n```\n"
+        )
     freeze_bytes(target / "research_report.md", report.encode())
     return hashes
 

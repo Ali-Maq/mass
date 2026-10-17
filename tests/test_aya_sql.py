@@ -8,6 +8,7 @@ import unittest
 from mass.aya_sql import (
     BOUNDARY,
     END,
+    OPTIMIZER_BUDGET,
     START,
     freeze_json,
     prepare_task,
@@ -37,6 +38,7 @@ class AyaSqlTests(unittest.TestCase):
             self.assertEqual(text.count(START), 1)
             self.assertEqual(text.count(END), 1)
             self.assertTrue(text.endswith(BOUNDARY + "\n"))
+            self.assertIn(OPTIMIZER_BUDGET, text.split(START)[0])
             source.write_text("Changed task")
             with self.assertRaises(ValueError):
                 prepare_task(source, target)
@@ -71,6 +73,30 @@ class AyaSqlTests(unittest.TestCase):
             (source / "results.json").write_text('{"split":"heldout"}')
             with self.assertRaisesRegex(ValueError, "development results"):
                 snapshot_workspace(source, source / "target")
+
+    def test_public_development_context_is_frozen_without_gold(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source, target = Path(directory) / "source", Path(directory) / "target"
+            source.mkdir()
+            for name, value in {
+                "queries.json": {"q1": {"sql": "SELECT 1"}},
+                "results.json": {"split": "development", "passed": 1},
+                "run_status.json": {"status": "completed"},
+                "public-tasks.json": {
+                    "split": "development",
+                    "questions": [{"id": "q1", "db_id": "a", "question": "Count rows"}],
+                    "databases": {"a": {"schema": "CREATE TABLE a(x)"}},
+                },
+            }.items():
+                (source / name).write_text(json.dumps(value))
+            hashes = snapshot_workspace(source, target)
+            self.assertIn("public-tasks.json", hashes)
+            self.assertIn("Count rows", (target / "research_report.md").read_text())
+            public = json.loads((source / "public-tasks.json").read_text())
+            public["questions"][0]["expected_sql"] = "SELECT count(*) FROM a"
+            (source / "public-tasks.json").write_text(json.dumps(public))
+            with self.assertRaisesRegex(ValueError, "oracle fields"):
+                snapshot_workspace(source, target)
 
 
 if __name__ == "__main__":

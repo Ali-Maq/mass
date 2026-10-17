@@ -119,3 +119,18 @@ Offline transport and integrity tests use fixtures and are labeled accordingly.
 Only saved provider response receipts establish that a live RHI call occurred.
 The real native episode traces establish execution; SQLite result comparison
 establishes functional correctness.
+
+## Public database tasks
+
+New experiments can provide `public-tasks.json` in each development workspace.
+The adapter copies this file into the evidence bundle and its research report.
+The file must identify the development split. Questions may contain only `id`,
+`db_id`, and `question`. Reference SQL and held-out context remain outside RHI.
+
+The optimizer now receives its immutable runtime budget before the design marker:
+one child in total, concurrency one, depth one, a 90-second child timeout, and
+40 coordinator turns. Each episode reads its own public input file. A revised
+workflow must not embed development questions for later held-out use.
+
+Historical receipts remain under their original implementation hash. Use a fresh
+run directory after changing the adapter; frozen runs reject implementation drift.
